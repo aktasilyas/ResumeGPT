@@ -1,0 +1,151 @@
+{
+  "identity": {
+    "name": "E1: The Anti-AI Designer",
+    "mission": "Create a CV builder that feels like a high-end architectural studio, not a tax form.",
+    "principles": [
+      "Fusion: Swiss Precision x Organic Calm (Job hunting is stressful; the UI must be the antidote)",
+      "Emotion: Confidence & Clarity",
+      "Content is King: The CV is the hero; the UI is the frame",
+      "Negative Space: Radical whitespace to reduce cognitive load"
+    ]
+  },
+  "typography": {
+    "headings": {
+      "family": "Outfit, sans-serif",
+      "weights": ["500", "700"],
+      "usage": "Main headlines, section titles. Use tight tracking (-0.02em) for large text.",
+      "import_url": "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    },
+    "body": {
+      "family": "'Plus Jakarta Sans', sans-serif",
+      "weights": ["400", "500", "600"],
+      "usage": "UI elements, form inputs, long text."
+    },
+    "mono": {
+      "family": "'JetBrains Mono', monospace",
+      "usage": "Code snippets, AI confidence scores, technical details."
+    }
+  },
+  "colors": {
+    "palette_name": "Organic Authority",
+    "strategy": "Deep, trustworthy greens paired with electric lime for AI moments. Avoids the generic 'SaaS Blue'.",
+    "base": {
+      "light": "#F8FAFC",
+      "dark": "#020617"
+    },
+    "brand": {
+      "primary": "#064E3B",
+      "primary_foreground": "#ECFDF5",
+      "secondary": "#D9F99D",
+      "secondary_foreground": "#14532D",
+      "accent": "#3B82F6",
+      "destructive": "#EF4444"
+    },
+    "neutrals": {
+      "slate_50": "#F8FAFC",
+      "slate_100": "#F1F5F9",
+      "slate_200": "#E2E8F0",
+      "slate_800": "#1E293B",
+      "slate_900": "#0F172A"
+    },
+    "tailwind_vars": {
+      "note": "Update globals.css :root variables to match these HSL values",
+      "primary": "166 85% 16%",
+      "secondary": "84 81% 79%",
+      "accent": "217 91% 60%",
+      "background": "210 40% 98%"
+    }
+  },
+  "layout": {
+    "grid_system": {
+      "landing": "Mode A: Tetris Grid (Asymmetrical, overlapping)",
+      "app": "Mode B: Control Room (Dense, functional, collapsible sidebars)"
+    },
+    "spacing": {
+      "scale": "Generous. Use p-8 or p-12 where others use p-4.",
+      "containers": "Borders must have internal padding (p-6+) to prevent text collision."
+    },
+    "radius": {
+      "default": "0.75rem (rounded-xl)",
+      "buttons": "9999px (pill-shaped) for primary actions, 0.5rem for tools."
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      "ghost": "hover:bg-slate-100 text-slate-700"
+    },
+    "cards": {
+      "style": "Flat with subtle 1px border (slate-200). No heavy shadows unless hovering.",
+      "hover": "hover:border-primary/30 hover:shadow-md transition-all duration-300"
+    },
+    "inputs": {
+      "style": "bg-white border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary h-12"
+    },
+    "wizard": {
+      "style": "Step-based progress on left. Smooth 'AnimatePresence' transitions between steps.",
+      "step_indicator": "Vertical line with active dots. Active step = Brand Color."
+    },
+    "ai_features": {
+      "badge": "bg-secondary/30 text-secondary-foreground border border-secondary/50 text-xs font-mono uppercase tracking-wider",
+      "suggestion_box": "bg-gradient-to-br from-white to-slate-50 border border-indigo-100 shadow-sm p-4 rounded-lg relative overflow-hidden"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Use subtle noise overlay (opacity 0.03) on solid backgrounds to kill digital flatness.",
+    "gradients": "No full-screen gradients. Use 'mesh' gradients only in small, contained areas (like AI buttons).",
+    "shadows": "Layered shadows: shadow-sm + shadow-xl (low opacity) for depth."
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "page_load": "Staggered fade-in for dashboard elements.",
+    "hover": "Lift (-2px) and subtle scale (1.01) for cards.",
+    "micro_interactions": "Buttons should 'press' (scale 0.98) on click."
+  },
+  "images": {
+    "hero_main": {
+      "url": "https://images.pexels.com/photos/4069291/pexels-photo-4069291.jpeg",
+      "alt": "Professional working in a clean, minimal space",
+      "usage": "Landing page hero section, right side or background with overlay."
+    },
+    "feature_1": {
+      "url": "https://images.pexels.com/photos/4069293/pexels-photo-4069293.jpeg",
+      "alt": "Focused work on laptop",
+      "usage": "Features section, 'Focus on Content' block."
+    },
+    "hiring_context": {
+      "url": "https://images.unsplash.com/photo-1587287720754-94bac45f0bff?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Resume review context",
+      "usage": "About section or 'Why Us' block."
+    }
+  },
+  "instructions_to_main_agent": {
+    "setup": [
+      "Install 'lucide-react' for icons.",
+      "Install 'framer-motion' for animations.",
+      "Install 'clsx' and 'tailwind-merge' for class management.",
+      "Update 'tailwind.config.js' with the new colors and font families."
+    ],
+    "critical_rules": [
+      "DO NOT use generic 'Inter' font for headings.",
+      "DO NOT use purple or teal for primary CTAs (Use the defined Deep Green).",
+      "Ensure all interactive elements have 'data-testid'.",
+      "Use 'sonner' for toast notifications.",
+      "Implement the 'Tetris Grid' for the landing page."
+    ]
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: 'transition: all'. This results in breaking transforms.",
+    "You MUST NOT center align the app container.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary."
+  ]
+}
