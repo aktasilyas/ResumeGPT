@@ -496,6 +496,19 @@ const translations = {
     "payment.goToDashboard": "Panele Git",
     "payment.processing": "Ödeme işleniyor...",
     
+    // Share
+    "share.title": "Özgeçmişi Paylaş",
+    "share.subtitle": "Özgeçmişinizi paylaşmak için herkese açık bir bağlantı oluşturun",
+    "share.generate": "Paylaşım Linki Oluştur",
+    "share.copy": "Linki Kopyala",
+    "share.copied": "Link kopyalandı!",
+    "share.delete": "Linki Sil",
+    "share.expires": "Geçerlilik",
+    "share.views": "Görüntüleme",
+    "share.premiumRequired": "Paylaşmak için premium abonelik gerekli",
+    "share.linkActive": "Paylaşım linki aktif",
+    "share.publicView": "Herkese Açık Özgeçmiş",
+    
     // Common
     "common.loading": "Yükleniyor...",
     "common.error": "Bir hata oluştu",
