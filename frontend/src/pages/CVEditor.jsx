@@ -17,6 +17,8 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/components/AuthProvider";
+import { useLanguage } from "@/components/LanguageProvider";
 import {
   ArrowLeft,
   Save,
@@ -39,11 +41,13 @@ import {
   Target,
   Wand2,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import CVPreview from "@/components/cv/CVPreview";
 import AIAnalysisPanel from "@/components/cv/AIAnalysisPanel";
 import JobOptimizeModal from "@/components/cv/JobOptimizeModal";
 import TemplateSelector from "@/components/cv/TemplateSelector";
+import ShareModal from "@/components/cv/ShareModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
