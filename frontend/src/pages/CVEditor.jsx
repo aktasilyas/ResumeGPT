@@ -276,16 +276,20 @@ export default function CVEditor() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowTemplates(true)} data-testid="templates-btn">
-              Templates
+            <Button variant="outline" size="sm" onClick={() => setShowShare(true)} data-testid="share-btn" className="hidden sm:flex">
+              <Share2 className="w-4 h-4 mr-2" />
+              {t("share.title")}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowJobOptimize(true)} data-testid="job-optimize-btn">
+            <Button variant="outline" size="sm" onClick={() => setShowTemplates(true)} data-testid="templates-btn" className="hidden sm:flex">
+              {t("editor.templates")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowJobOptimize(true)} data-testid="job-optimize-btn" className="hidden lg:flex">
               <Target className="w-4 h-4 mr-2" />
-              Optimize for Job
+              {t("editor.optimizeForJob")}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setShowAnalysis(true)} data-testid="analyze-btn">
               <Sparkles className="w-4 h-4 mr-2" />
-              AI Analysis
+              <span className="hidden sm:inline">{t("editor.aiAnalysis")}</span>
             </Button>
             <Button size="sm" onClick={handleDownloadPDF} data-testid="download-pdf-btn">
               <Download className="w-4 h-4 mr-2" />
