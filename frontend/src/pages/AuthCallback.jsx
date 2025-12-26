@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 import { Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
@@ -39,10 +41,13 @@ export default function AuthCallback() {
         }
 
         const user = await response.json();
+        
+        // Update auth context
+        await login(user);
 
         // Clear the hash and navigate to dashboard
         window.history.replaceState(null, "", window.location.pathname);
-        navigate("/dashboard", { replace: true, state: { user } });
+        navigate("/dashboard", { replace: true });
       } catch (error) {
         console.error("Auth callback error:", error);
         navigate("/", { replace: true });
@@ -50,7 +55,7 @@ export default function AuthCallback() {
     };
 
     processAuth();
-  }, [navigate]);
+  }, [navigate, login]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { Loader2, FileText, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
@@ -15,6 +16,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("login");
   
@@ -35,8 +37,9 @@ export default function AuthPage() {
       
       if (response.ok) {
         const user = await response.json();
+        await login(user);
         toast.success(t("auth.login") + " ✓");
-        navigate("/dashboard", { state: { user } });
+        navigate("/dashboard", { replace: true });
       } else {
         const error = await response.json();
         toast.error(error.detail || t("common.error"));
@@ -62,8 +65,9 @@ export default function AuthPage() {
       
       if (response.ok) {
         const user = await response.json();
+        await login(user);
         toast.success(t("auth.signup") + " ✓");
-        navigate("/dashboard", { state: { user } });
+        navigate("/dashboard", { replace: true });
       } else {
         const error = await response.json();
         toast.error(error.detail || t("common.error"));
@@ -209,7 +213,7 @@ export default function AuthPage() {
               className="w-full"
               onClick={handleGoogleLogin}
               disabled={loading}
-              data-testid="google-login"
+              data-testid="google-login-btn"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
