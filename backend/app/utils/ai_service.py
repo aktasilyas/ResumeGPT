@@ -1,44 +1,40 @@
-"""AI service integration utilities."""
-import os
-import uuid
-from fastapi import HTTPException
+"""AI service integration utilities using Google Gemini."""
+import google.generativeai as genai
+from app.core.config import settings
 from app.core.logging import logger
+from fastapi import HTTPException
 
-# Try importing emergent integrations
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-except ImportError:
-    LlmChat = None
-    class UserMessage:
-        def __init__(self, text):
-            self.text = text
+
+# Configure Google Gemini API
+if settings.google_api_key:
+    genai.configure(api_key=settings.google_api_key)
 
 
 async def get_ai_response(system_message: str, user_message: str) -> str:
-    """Get AI response using Gemini via emergent integrations."""
-    api_key = os.environ.get("EMERGENT_LLM_KEY")
-
-    if not api_key:
-        logger.error("AI service not configured: EMERGENT_LLM_KEY missing")
+    """Get AI response using Google Gemini API."""
+    if not settings.google_api_key:
+        logger.error("AI service not configured: GOOGLE_API_KEY missing")
         raise HTTPException(status_code=500, detail="AI service not configured")
 
-    if LlmChat is None:
-        logger.error("AI integration not available in this environment")
-        raise HTTPException(
-            status_code=501,
-            detail="AI integration not available in this environment"
-        )
-
     try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"cv_{uuid.uuid4().hex[:8]}",
-            system_message=system_message
-        )
-        chat.with_model("gemini", "gemini-3-flash-preview")
+        logger.info("Initializing Gemini model: gemini-pro")
 
-        response = await chat.send_message(UserMessage(text=user_message))
-        return response
+        # Use Gemini Pro for responses
+        model = genai.GenerativeModel(
+            model_name='gemini-pro',
+            system_instruction=system_message
+        )
+
+        logger.info("Sending request to Gemini API")
+        # Generate response
+        response = model.generate_content(user_message)
+
+        if not response or not response.text:
+            logger.error("Empty response from Gemini API")
+            raise Exception("Empty response from AI service")
+
+        logger.info(f"Received response from Gemini API, length: {len(response.text)}")
+        return response.text
 
     except Exception as e:
         logger.error(f"AI service error: {str(e)}", extra={"error_type": type(e).__name__})

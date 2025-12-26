@@ -54,10 +54,29 @@ export async function postBlob(path, body, opts) {
   return apiRequest(path, { method: "POST", body, ...opts });
 }
 
+/**
+ * Download PDF file for a CV
+ * @param {string} cvId - CV ID
+ * @param {string} title - CV title for filename
+ * @returns {Promise<void>}
+ */
+export async function downloadPDF(cvId, title) {
+  const blob = await postBlob(`/generate-pdf/${cvId}`);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${title}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
 export default {
   getJson,
   postJson,
   putJson,
   deleteJson,
   postBlob,
+  downloadPDF,
 };

@@ -4,6 +4,10 @@
   "nav.signup": "Üye Ol",
   "nav.dashboard": "Panel",
   "nav.logout": "Çıkış Yap",
+  "nav.language": "Dil",
+  "nav.theme": "Tema",
+  "nav.light": "Açık",
+  "nav.dark": "Koyu",
 
   "landing.badge": "Yapay Zeka Destekli",
   "landing.title": "Mükemmel Özgeçmişini",
@@ -25,7 +29,7 @@
   "landing.step3Title": "PDF İndir",
   "landing.step3Desc": "Başvurulara hazır, cilalı özgeçmişinizi dışa aktarın",
   "landing.ctaTitle": "Hayalinizdeki İşe Hazır mısınız?",
-  "landing.ctaSubtitle": "SmartResume ile kariyerlerini geliştiren binlerce profesyonele katılın.",
+  "landing.ctaSubtitle": "ResumeGPT ile kariyerlerini geliştiren binlerce profesyonele katılın.",
   "landing.ctaButton": "Ücretsiz Başla",
 
   "feature.aiAnalysis": "Yapay Zeka Analizi",

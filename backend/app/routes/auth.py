@@ -1,10 +1,11 @@
-"""Authentication routes: login, register, OAuth."""
+"""Authentication routes: login, register, OAuth.  """
 import uuid
 import httpx
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from app.models.user import User, RegisterRequest, LoginRequest
 from app.core.database import db
+from app.core.config import settings
 from app.core.security import (
     hash_password,
     verify_password,
@@ -84,9 +85,13 @@ async def login(request: LoginRequest, response: Response):
 @router.post("/session")
 async def create_session(request: Request, response: Response):
     """Exchange session_id for session_token (Google OAuth)."""
+    logger.info("=== SESSION ENDPOINT CALLED ===")
     try:
+        logger.info("About to read request body...")
         body = await request.json()
+        logger.info(f"Body successfully read: {type(body)}")
         session_id = body.get("session_id")
+        logger.info(f"Received session_id: {session_id[:20] if session_id else 'None'}...")
 
         if not session_id:
             raise HTTPException(status_code=400, detail="session_id required")
@@ -138,12 +143,14 @@ async def create_session(request: Request, response: Response):
             "created_at": datetime.now(timezone.utc).isoformat()
         })
 
+        # Set cookie with appropriate security settings for environment
+        is_production = settings.environment == "production"
         response.set_cookie(
             key="session_token",
             value=session_token,
             httponly=True,
-            secure=True,
-            samesite="none",
+            secure=is_production,
+            samesite="none" if is_production else "lax",
             max_age=7 * 24 * 60 * 60,
             path="/"
         )
@@ -160,8 +167,20 @@ async def create_session(request: Request, response: Response):
         logger.error(f"OAuth HTTP error: {str(e)}")
         raise HTTPException(status_code=502, detail="OAuth service unavailable")
     except Exception as e:
-        logger.error(f"Session creation error: {str(e)}", extra={"error_type": type(e).__name__})
-        raise HTTPException(status_code=500, detail="Session creation failed")
+        import traceback
+        import sys
+        error_msg = str(e) if str(e) else "Unknown error"
+        error_type = type(e).__name__
+        tb_str = traceback.format_exc()
+
+        logger.error(f"=== SESSION CREATION ERROR START ===")
+        logger.error(f"Error message: {error_msg}")
+        logger.error(f"Error type: {error_type}")
+        logger.error(f"Error repr: {repr(e)}")
+        logger.error(f"Full traceback:\n{tb_str}")
+        logger.error(f"=== SESSION CREATION ERROR END ===")
+
+        raise HTTPException(status_code=500, detail=f"Session creation failed: {error_type} - {error_msg}")
 
 
 @router.get("/me")
@@ -178,5 +197,11 @@ async def logout(request: Request, response: Response):
         await db.user_sessions.delete_one({"session_token": session_token})
         logger.info("User logged out")
 
-    response.delete_cookie("session_token", path="/", samesite="none", secure=True)
+    is_production = settings.environment == "production"
+    response.delete_cookie(
+        "session_token",
+        path="/",
+        samesite="none" if is_production else "lax",
+        secure=is_production
+    )
     return {"message": "Logged out"}

@@ -71,7 +71,7 @@ export default function AuthPage() {
               <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
                 <FileText className="w-7 h-7" />
               </div>
-              <span className="font-heading font-bold text-3xl">SmartResume</span>
+              <span className="font-heading font-bold text-3xl text-foreground">ResumeGPT</span>
             </div>
             
             <h1 className="font-heading text-4xl xl:text-5xl font-bold leading-tight mb-6">
@@ -150,7 +150,7 @@ export default function AuthPage() {
               <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="font-heading font-bold text-2xl">SmartResume</span>
+              <span className="font-heading font-bold text-2xl text-foreground">ResumeGPT</span>
             </div>
 
             {/* Title */}

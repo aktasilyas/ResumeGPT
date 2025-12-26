@@ -18,8 +18,12 @@ export default function AuthCallback() {
       try {
         // Extract session_id from URL fragment
         const hash = window.location.hash;
+        console.log("Auth callback - Full URL:", window.location.href);
+        console.log("Auth callback - Hash:", hash);
+
         const params = new URLSearchParams(hash.substring(1));
         const sessionId = params.get("session_id");
+        console.log("Auth callback - Session ID:", sessionId);
 
         if (!sessionId) {
           console.error("No session_id in URL");
@@ -27,8 +31,21 @@ export default function AuthCallback() {
           return;
         }
 
+        console.log("Auth callback - Exchanging session_id for token...");
         // Exchange session_id for session_token
-        const user = await postJson(`/auth/session`, { session_id: sessionId });
+        let user;
+        try {
+          user = await postJson(`/auth/session`, { session_id: sessionId });
+          console.log("Auth callback - User received:", user);
+        } catch (sessionError) {
+          console.error("Auth callback - Session exchange failed:", sessionError);
+          console.error("Auth callback - Error details:", {
+            message: sessionError.message,
+            status: sessionError.status,
+            stack: sessionError.stack
+          });
+          throw sessionError;
+        }
 
         // Update auth context
         await login(user);

@@ -4,6 +4,10 @@
   "nav.signup": "Sign Up",
   "nav.dashboard": "Dashboard",
   "nav.logout": "Sign Out",
+  "nav.language": "Language",
+  "nav.theme": "Theme",
+  "nav.light": "Light",
+  "nav.dark": "Dark",
 
   "landing.badge": "Powered by AI",
   "landing.title": "Build Your Perfect",
@@ -25,7 +29,7 @@
   "landing.step3Title": "Download PDF",
   "landing.step3Desc": "Export your polished resume ready for applications",
   "landing.ctaTitle": "Ready to Land Your Dream Job?",
-  "landing.ctaSubtitle": "Join thousands of professionals who have improved their careers with SmartResume.",
+  "landing.ctaSubtitle": "Join thousands of professionals who have improved their careers with ResumeGPT.",
   "landing.ctaButton": "Start Building for Free",
 
   "feature.aiAnalysis": "AI-Powered Analysis",

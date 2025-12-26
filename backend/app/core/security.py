@@ -79,13 +79,14 @@ async def create_user_session(user_id: str, response: Response) -> str:
         "created_at": datetime.now(timezone.utc).isoformat()
     })
 
-    # Set secure HTTP-only cookie
+    # Set secure HTTP-only cookie (adjust for development vs production)
+    is_production = settings.environment == "production"
     response.set_cookie(
         key="session_token",
         value=session_token,
         httponly=True,
-        secure=True,
-        samesite="none",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
         max_age=settings.session_expire_days * 24 * 60 * 60,
         path="/"
     )

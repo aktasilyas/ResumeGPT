@@ -68,9 +68,9 @@ export default function CVPreview({ cv, scale = 0.5 }) {
   }), [scale]);
 
   return (
-    <div className="cv-preview-container" style={containerStyle}>
+    <div className="cv-preview-container rounded-lg overflow-hidden" style={containerStyle}>
       <div
-        className={`shadow-2xl ${template.wrapper}`}
+        className={`shadow-2xl ring-1 ring-black/5 ${template.wrapper}`}
         style={previewStyle}
         data-testid="cv-preview"
       >

@@ -2,7 +2,24 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(mongod:*)",
+      "Bash(powershell:*)",
+      "Bash(.venvScriptspython.exe -m uvicorn server:app --reload --port 8000)",
+      "Bash(timeout:*)",
+      "Bash(\".venv/Scripts/python.exe\" -m uvicorn server:app --reload --port 8000)",
+      "Bash(curl:*)",
+      "Bash(yarn start)",
+      "Bash(npm start)",
+      "Bash(dir:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(pip install:*)",
+      "Bash(pip cache:*)",
+      "Bash(tasklist:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venv/Scripts/pip install:*)"
     ]
   }
 }

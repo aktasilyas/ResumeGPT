@@ -85,7 +85,7 @@ export default function PublicCV() {
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
               <FileText className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-lg sm:text-xl">SmartResume</span>
+            <span className="font-heading font-bold text-lg sm:text-xl text-foreground">ResumeGPT</span>
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -165,8 +165,8 @@ export default function PublicCV() {
           </h2>
           <p className="text-primary-foreground/80 mb-4 sm:mb-6 text-sm sm:text-base">
             {language === "tr"
-              ? "Yapay zeka destekli SmartResume ile dakikalar içinde etkileyici bir özgeçmiş oluşturun."
-              : "Build an impressive resume in minutes with AI-powered SmartResume."}
+              ? "Yapay zeka destekli ResumeGPT ile dakikalar içinde etkileyici bir özgeçmiş oluşturun."
+              : "Build an impressive resume in minutes with AI-powered ResumeGPT."}
           </p>
           <Link to="/">
             <Button variant="secondary" size="lg" className="rounded-full px-8">

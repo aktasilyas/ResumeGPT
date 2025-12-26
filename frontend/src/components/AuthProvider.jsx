@@ -15,6 +15,12 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Skip auth check if we're in the OAuth callback flow
+    if (window.location.hash?.includes('session_id=')) {
+      console.log("AuthProvider - Skipping auth check during OAuth callback");
+      setIsLoading(false);
+      return;
+    }
     checkAuth();
   }, []);
 

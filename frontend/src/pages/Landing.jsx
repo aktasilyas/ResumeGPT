@@ -53,9 +53,15 @@ export default function Landing() {
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    navigate("/auth");
+  };
+
+  const handleViewTemplates = () => {
+    // Scroll to features section or navigate to templates page
+    const featuresSection = document.querySelector('.features-section');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const features = [
@@ -100,7 +106,7 @@ export default function Landing() {
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
               <FileText className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-lg sm:text-xl">SmartResume</span>
+            <span className="font-heading font-bold text-lg sm:text-xl text-foreground">ResumeGPT</span>
           </div>
           
           {/* Desktop Nav */}
@@ -227,6 +233,7 @@ export default function Landing() {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={handleViewTemplates}
                   className="rounded-full px-6 sm:px-8 text-base w-full sm:w-auto"
                 >
                   {t("landing.viewTemplates")}
@@ -277,7 +284,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-muted/30">
+      <section className="features-section py-16 sm:py-24 px-4 sm:px-6 bg-surface/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
@@ -375,10 +382,10 @@ export default function Landing() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <FileText className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold">SmartResume</span>
+            <span className="font-heading font-bold text-foreground">ResumeGPT</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2025 SmartResume. Built with AI.
+            © 2025 ResumeGPT. Built with AI.
           </p>
         </div>
       </footer>

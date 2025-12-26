@@ -16,7 +16,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/components/AuthProvider";
 import { useLanguage } from "@/components/LanguageProvider";
 import {
@@ -35,8 +34,6 @@ import {
   Plus,
   Trash2,
   Loader2,
-  Moon,
-  Sun,
   CheckCircle2,
   Target,
   Wand2,
@@ -48,26 +45,26 @@ import AIAnalysisPanel from "@/components/cv/AIAnalysisPanel";
 import JobOptimizeModal from "@/components/cv/JobOptimizeModal";
 import TemplateSelector from "@/components/cv/TemplateSelector";
 import ShareModal from "@/components/cv/ShareModal";
+import ProfileMenu from "@/components/ProfileMenu";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { getJson, postJson, putJson, postBlob } from "@/lib/api";
+import { getJson, postJson, putJson, downloadPDF } from "@/lib/api";
 
 const WIZARD_STEPS = [
-  { id: "personal", label: "Personal Info", icon: User },
-  { id: "summary", label: "Summary", icon: FileText },
-  { id: "experience", label: "Experience", icon: Briefcase },
-  { id: "education", label: "Education", icon: GraduationCap },
-  { id: "skills", label: "Skills", icon: Code },
-  { id: "languages", label: "Languages", icon: Globe },
-  { id: "certificates", label: "Certificates", icon: Award },
-  { id: "projects", label: "Projects", icon: FolderOpen },
+  { id: "personal", labelKey: "step.personal", icon: User },
+  { id: "summary", labelKey: "step.summary", icon: FileText },
+  { id: "experience", labelKey: "step.experience", icon: Briefcase },
+  { id: "education", labelKey: "step.education", icon: GraduationCap },
+  { id: "skills", labelKey: "step.skills", icon: Code },
+  { id: "languages", labelKey: "step.languages", icon: Globe },
+  { id: "certificates", labelKey: "step.certificates", icon: Award },
+  { id: "projects", labelKey: "step.projects", icon: FolderOpen },
 ];
 
 export default function CVEditor() {
   const { cvId } = useParams();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
 
   const [cv, setCV] = useState(null);
@@ -194,15 +191,7 @@ export default function CVEditor() {
 
   const handleDownloadPDF = async () => {
     try {
-      const blob = await postBlob(`/generate-pdf/${cvId}`);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${cv.title}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      await downloadPDF(cvId, cv.title);
       toast.success("PDF downloaded!");
     } catch (error) {
       console.error("Failed to download PDF:", error);
@@ -223,7 +212,7 @@ export default function CVEditor() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 glass border-b border-border/50">
+      <nav className="navbar">
         <div className="max-w-full px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} data-testid="back-btn">
@@ -270,9 +259,15 @@ export default function CVEditor() {
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
+            <ProfileMenu
+              user={user}
+              onLogout={async () => {
+                await logout();
+                navigate("/", { replace: true });
+              }}
+              showLanguage={true}
+              showTheme={true}
+            />
           </div>
         </div>
       </nav>
@@ -280,10 +275,10 @@ export default function CVEditor() {
       {/* Main Editor */}
       <div className="editor-container">
         {/* Left: Wizard Steps */}
-        <div className="border-r border-border bg-card overflow-hidden">
+        <div className="sidebar">
           <ScrollArea className="h-full">
             <div className="p-4">
-              <h3 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-4">
+              <h3 className="font-heading font-semibold text-sm text-foreground-muted uppercase tracking-wider mb-4">
                 CV Sections
               </h3>
               <div className="space-y-1">
@@ -296,13 +291,13 @@ export default function CVEditor() {
                       onClick={() => setActiveStep(step.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                         isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
+                          ? "bg-primary text-primary-foreground shadow-smooth"
+                          : "hover:bg-surface text-foreground"
                       }`}
                       data-testid={`step-${step.id}`}
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="font-medium">{step.label}</span>
+                      <span className="font-medium">{t(step.labelKey)}</span>
                       {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
                     </button>
                   );
@@ -313,9 +308,9 @@ export default function CVEditor() {
         </div>
 
         {/* Center: Form */}
-        <div className="overflow-hidden">
+        <div className="content-area overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="p-8 max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeStep}
@@ -392,9 +387,9 @@ export default function CVEditor() {
         </div>
 
         {/* Right: Preview */}
-        <div className="border-l border-border bg-muted/30 overflow-hidden hidden xl:block">
-          <div className="p-4 border-b border-border bg-card">
-            <h3 className="font-heading font-semibold">Live Preview</h3>
+        <div className="border-l border-border bg-surface/30 overflow-hidden hidden xl:block">
+          <div className="p-4 border-b border-border bg-surface">
+            <h3 className="font-heading font-semibold text-foreground">Live Preview</h3>
           </div>
           <ScrollArea className="h-[calc(100vh-128px)]">
             <div className="p-4">
@@ -452,8 +447,8 @@ function PersonalInfoForm({ cv, onChange }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-heading text-2xl font-bold mb-2">Personal Information</h2>
-        <p className="text-muted-foreground">Add your contact details</p>
+        <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Personal Information</h2>
+        <p className="text-foreground-muted">Add your contact details</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -528,8 +523,8 @@ function SummaryForm({ cv, onChange, onImprove, loading }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Professional Summary</h2>
-          <p className="text-muted-foreground">Write a compelling summary of your experience</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Professional Summary</h2>
+          <p className="text-foreground-muted">Write a compelling summary of your experience</p>
         </div>
         <Button
           variant="outline"
@@ -567,8 +562,8 @@ function ExperienceForm({ cv, onChange, onAdd, onRemove, onImprove, loading }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Work Experience</h2>
-          <p className="text-muted-foreground">Add your professional experience</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Work Experience</h2>
+          <p className="text-foreground-muted">Add your professional experience</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-experience-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -609,6 +604,7 @@ function ExperienceForm({ cv, onChange, onAdd, onRemove, onImprove, loading }) {
                 <div>
                   <Label>Start Date</Label>
                   <Input
+                    type="month"
                     value={exp.start_date || ""}
                     onChange={(e) => handleItemChange(index, "start_date", e.target.value)}
                     placeholder="Jan 2020"
@@ -617,6 +613,7 @@ function ExperienceForm({ cv, onChange, onAdd, onRemove, onImprove, loading }) {
                 <div>
                   <Label>End Date</Label>
                   <Input
+                    type="month"
                     value={exp.end_date || ""}
                     onChange={(e) => handleItemChange(index, "end_date", e.target.value)}
                     placeholder="Present"
@@ -650,7 +647,7 @@ function ExperienceForm({ cv, onChange, onAdd, onRemove, onImprove, loading }) {
         ))}
 
         {experiences.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No experiences added yet. Click "Add Experience" to get started.
           </div>
         )}
@@ -672,8 +669,8 @@ function EducationForm({ cv, onChange, onAdd, onRemove }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Education</h2>
-          <p className="text-muted-foreground">Add your educational background</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Education</h2>
+          <p className="text-foreground-muted">Add your educational background</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-education-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -722,6 +719,7 @@ function EducationForm({ cv, onChange, onAdd, onRemove }) {
                 <div>
                   <Label>Start Date</Label>
                   <Input
+                    type="month"
                     value={edu.start_date || ""}
                     onChange={(e) => handleItemChange(index, "start_date", e.target.value)}
                     placeholder="2016"
@@ -730,6 +728,7 @@ function EducationForm({ cv, onChange, onAdd, onRemove }) {
                 <div>
                   <Label>End Date</Label>
                   <Input
+                    type="month"
                     value={edu.end_date || ""}
                     onChange={(e) => handleItemChange(index, "end_date", e.target.value)}
                     placeholder="2020"
@@ -741,7 +740,7 @@ function EducationForm({ cv, onChange, onAdd, onRemove }) {
         ))}
 
         {education.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No education added yet. Click "Add Education" to get started.
           </div>
         )}
@@ -763,8 +762,8 @@ function SkillsForm({ cv, onChange, onAdd, onRemove }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Skills</h2>
-          <p className="text-muted-foreground">Add your technical and soft skills</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Skills</h2>
+          <p className="text-foreground-muted">Add your technical and soft skills</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-skill-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -819,7 +818,7 @@ function SkillsForm({ cv, onChange, onAdd, onRemove }) {
         ))}
 
         {skills.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No skills added yet. Click "Add Skill" to get started.
           </div>
         )}
@@ -841,8 +840,8 @@ function LanguagesForm({ cv, onChange, onAdd, onRemove }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Languages</h2>
-          <p className="text-muted-foreground">Add languages you speak</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Languages</h2>
+          <p className="text-foreground-muted">Add languages you speak</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-language-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -886,7 +885,7 @@ function LanguagesForm({ cv, onChange, onAdd, onRemove }) {
         ))}
 
         {languages.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No languages added yet. Click "Add Language" to get started.
           </div>
         )}
@@ -908,8 +907,8 @@ function CertificatesForm({ cv, onChange, onAdd, onRemove }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Certificates</h2>
-          <p className="text-muted-foreground">Add your certifications</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Certificates</h2>
+          <p className="text-foreground-muted">Add your certifications</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-certificate-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -961,7 +960,7 @@ function CertificatesForm({ cv, onChange, onAdd, onRemove }) {
         ))}
 
         {certificates.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No certificates added yet. Click "Add Certificate" to get started.
           </div>
         )}
@@ -983,8 +982,8 @@ function ProjectsForm({ cv, onChange, onAdd, onRemove }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-heading text-2xl font-bold mb-2">Projects</h2>
-          <p className="text-muted-foreground">Showcase your personal projects</p>
+          <h2 className="font-heading text-2xl font-bold mb-2 text-foreground">Projects</h2>
+          <p className="text-foreground-muted">Showcase your personal projects</p>
         </div>
         <Button onClick={onAdd} size="sm" data-testid="add-project-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -1037,7 +1036,7 @@ function ProjectsForm({ cv, onChange, onAdd, onRemove }) {
         ))}
 
         {projects.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground-muted">
             No projects added yet. Click "Add Project" to get started.
           </div>
         )}
