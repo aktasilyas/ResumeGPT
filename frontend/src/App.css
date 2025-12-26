@@ -29,23 +29,29 @@
     @apply bg-secondary/30 text-secondary-foreground border border-secondary/50;
 }
 
-/* CV Editor layout */
+/* CV Editor layout - Responsive */
 .editor-container {
     display: grid;
-    grid-template-columns: 380px 1fr 400px;
+    grid-template-columns: 1fr;
     gap: 0;
     height: calc(100vh - 64px);
 }
 
-@media (max-width: 1280px) {
+@media (min-width: 768px) {
     .editor-container {
-        grid-template-columns: 360px 1fr;
+        grid-template-columns: 280px 1fr;
     }
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
     .editor-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 320px 1fr;
+    }
+}
+
+@media (min-width: 1280px) {
+    .editor-container {
+        grid-template-columns: 360px 1fr 380px;
     }
 }
 
@@ -71,7 +77,7 @@
     @apply bg-primary text-primary-foreground;
 }
 
-/* CV Preview scaling */
+/* CV Preview scaling - Responsive */
 .cv-preview-container {
     @apply relative;
     transform-origin: top center;
@@ -80,13 +86,25 @@
 .cv-preview-scale {
     width: 210mm;
     min-height: 297mm;
-    transform: scale(0.5);
+    transform: scale(0.35);
     transform-origin: top left;
+}
+
+@media (min-width: 640px) {
+    .cv-preview-scale {
+        transform: scale(0.4);
+    }
+}
+
+@media (min-width: 1024px) {
+    .cv-preview-scale {
+        transform: scale(0.45);
+    }
 }
 
 @media (min-width: 1280px) {
     .cv-preview-scale {
-        transform: scale(0.55);
+        transform: scale(0.5);
     }
 }
 
@@ -127,8 +145,8 @@
 
 /* Floating action button */
 .fab {
-    @apply fixed bottom-6 right-6 z-50;
-    @apply w-14 h-14 rounded-full shadow-lg;
+    @apply fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50;
+    @apply w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg;
     @apply flex items-center justify-center;
     @apply bg-primary text-primary-foreground;
     @apply hover:shadow-xl transition-shadow duration-300;
@@ -204,18 +222,124 @@
     @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
 }
 
-/* Dashboard grid */
+/* Dashboard grid - Responsive */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 /* Empty state illustration */
 .empty-state {
-    @apply flex flex-col items-center justify-center py-16 text-center;
+    @apply flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4;
 }
 
 .empty-state-icon {
-    @apply w-24 h-24 mb-6 text-muted-foreground/30;
+    @apply w-20 h-20 sm:w-24 sm:h-24 mb-4 sm:mb-6 text-muted-foreground/30;
+}
+
+/* Mobile-first typography */
+@media (max-width: 639px) {
+    .font-heading {
+        letter-spacing: -0.01em;
+    }
+}
+
+/* Touch-friendly buttons on mobile */
+@media (max-width: 639px) {
+    .btn-touch {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Hide scrollbar on mobile menu */
+.mobile-menu {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mobile-menu::-webkit-scrollbar {
+    display: none;
+}
+
+/* Bottom sheet style modal on mobile */
+@media (max-width: 639px) {
+    .modal-bottom-sheet {
+        @apply fixed bottom-0 left-0 right-0 max-h-[90vh] rounded-t-2xl rounded-b-none;
+    }
+}
+
+/* Card hover effects - disabled on touch devices */
+@media (hover: none) {
+    .template-card:hover {
+        transform: none;
+        border-color: transparent;
+    }
+    
+    .feature-card:hover::before {
+        opacity: 0;
+    }
+}
+
+/* Safe area padding for mobile */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Responsive text utilities */
+.text-responsive-sm {
+    @apply text-xs sm:text-sm;
+}
+
+.text-responsive-base {
+    @apply text-sm sm:text-base;
+}
+
+.text-responsive-lg {
+    @apply text-base sm:text-lg;
+}
+
+.text-responsive-xl {
+    @apply text-lg sm:text-xl;
+}
+
+.text-responsive-2xl {
+    @apply text-xl sm:text-2xl;
+}
+
+.text-responsive-3xl {
+    @apply text-2xl sm:text-3xl;
+}
+
+/* Responsive spacing utilities */
+.p-responsive {
+    @apply p-4 sm:p-6;
+}
+
+.py-responsive {
+    @apply py-4 sm:py-6;
+}
+
+.px-responsive {
+    @apply px-4 sm:px-6;
+}
+
+.gap-responsive {
+    @apply gap-4 sm:gap-6;
 }
