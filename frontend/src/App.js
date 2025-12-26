@@ -6,6 +6,7 @@ import CVEditor from "@/pages/CVEditor";
 import AuthCallback from "@/pages/AuthCallback";
 import AuthPage from "@/pages/AuthPage";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import PublicCV from "@/pages/PublicCV";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
@@ -25,6 +26,7 @@ function AppRouter() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/cv/:shareToken" element={<PublicCV />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
