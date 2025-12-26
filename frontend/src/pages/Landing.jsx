@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/ThemeProvider";
+import { useLanguage } from "@/components/LanguageProvider";
 import {
   FileText,
   Sparkles,
@@ -14,15 +21,20 @@ import {
   Zap,
   Shield,
   LayoutTemplate,
+  Globe,
+  Menu,
+  X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Landing() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if already authenticated
   useEffect(() => {
@@ -40,8 +52,11 @@ export default function Landing() {
   }, [navigate]);
 
   const handleLogin = () => {
+    navigate("/auth");
+  };
+
+  const handleGoogleLogin = () => {
     setIsLoading(true);
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + "/dashboard";
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
@@ -49,55 +64,68 @@ export default function Landing() {
   const features = [
     {
       icon: Sparkles,
-      title: "AI-Powered Analysis",
-      description: "Get instant feedback on your CV with AI scoring and suggestions for improvement.",
+      title: t("feature.aiAnalysis"),
+      description: t("feature.aiAnalysisDesc"),
     },
     {
       icon: Target,
-      title: "Job Optimization",
-      description: "Tailor your resume for specific job descriptions and increase your match rate.",
+      title: t("feature.jobOptimization"),
+      description: t("feature.jobOptimizationDesc"),
     },
     {
       icon: LayoutTemplate,
-      title: "Professional Templates",
-      description: "Choose from modern, ATS-friendly templates designed by career experts.",
+      title: t("feature.templates"),
+      description: t("feature.templatesDesc"),
     },
     {
       icon: Download,
-      title: "PDF Export",
-      description: "Download your resume as a pixel-perfect PDF ready for applications.",
+      title: t("feature.pdfExport"),
+      description: t("feature.pdfExportDesc"),
     },
     {
       icon: Zap,
-      title: "Smart Suggestions",
-      description: "AI rewrites weak descriptions and suggests stronger action verbs.",
+      title: t("feature.smartSuggestions"),
+      description: t("feature.smartSuggestionsDesc"),
     },
     {
       icon: Shield,
-      title: "ATS Compatible",
-      description: "Ensure your resume passes Applicant Tracking Systems every time.",
+      title: t("feature.atsCompatible"),
+      description: t("feature.atsCompatibleDesc"),
     },
-  ];
-
-  const testimonials = [
-    { name: "Sarah M.", role: "Software Engineer", quote: "Landed my dream job at a FAANG company!" },
-    { name: "James K.", role: "Marketing Manager", quote: "The AI suggestions were incredibly helpful." },
-    { name: "Emily R.", role: "Data Scientist", quote: "Best resume builder I've ever used." },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
               <FileText className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-xl">SmartResume</span>
+            <span className="font-heading font-bold text-lg sm:text-xl">SmartResume</span>
           </div>
           
-          <div className="flex items-center gap-4">
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" data-testid="language-switcher">
+                  <Globe className="w-4 h-4 mr-1" />
+                  {language.toUpperCase()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setLanguage("en")}>
+                  🇺🇸 English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("tr")}>
+                  🇹🇷 Türkçe
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               size="icon"
@@ -107,68 +135,112 @@ export default function Landing() {
               {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
             
+            <Button variant="ghost" onClick={handleLogin} data-testid="login-btn">
+              {t("nav.login")}
+            </Button>
+            
             <Button
-              onClick={handleLogin}
+              onClick={handleGoogleLogin}
               disabled={isLoading}
               className="rounded-full px-6"
-              data-testid="login-btn"
+              data-testid="get-started-btn"
             >
-              {isLoading ? "Redirecting..." : "Get Started"}
+              {isLoading ? "..." : t("nav.getStarted")}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-card border-t"
+            >
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">{t("nav.login")}</span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setLanguage("en")}>EN</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setLanguage("tr")}>TR</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full" onClick={handleLogin}>
+                  {t("nav.login")}
+                </Button>
+                <Button className="w-full" onClick={handleGoogleLogin}>
+                  {t("nav.getStarted")}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 hero-gradient">
+      <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 hero-gradient">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="ai-badge mb-6">
+              <div className="ai-badge mb-4 sm:mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                Powered by AI
+                {t("landing.badge")}
               </div>
               
-              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Build Your Perfect
-                <span className="block text-primary">Resume in Minutes</span>
+              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+                {t("landing.title")}
+                <span className="block text-primary">{t("landing.titleHighlight")}</span>
               </h1>
               
-              <p className="text-lg text-muted-foreground mb-8 max-w-lg">
-                Create professional, ATS-optimized resumes with AI-powered analysis. 
-                Stand out from the crowd and land your dream job.
+              <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-lg">
+                {t("landing.subtitle")}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Button
                   size="lg"
-                  onClick={handleLogin}
+                  onClick={handleGoogleLogin}
                   disabled={isLoading}
-                  className="rounded-full px-8 text-base btn-press"
+                  className="rounded-full px-6 sm:px-8 text-base btn-press w-full sm:w-auto"
                   data-testid="hero-cta"
                 >
-                  Create Your Resume
+                  {t("landing.cta")}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-8 text-base"
+                  className="rounded-full px-6 sm:px-8 text-base w-full sm:w-auto"
                 >
-                  View Templates
+                  {t("landing.viewTemplates")}
                 </Button>
               </div>
               
-              <div className="flex items-center gap-6 mt-10">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-8 sm:mt-10">
                 {[
-                  "Free to start",
-                  "No credit card",
-                  "AI-powered",
+                  t("landing.freeToStart"),
+                  t("landing.noCredit"),
+                  t("landing.aiPowered"),
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -208,18 +280,18 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6 bg-muted/30">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4">
-              Everything You Need to Succeed
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              {t("landing.featuresTitle")}
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Powerful features designed to help you create the perfect resume
+            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+              {t("landing.featuresSubtitle")}
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -227,13 +299,13 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="feature-card bg-card rounded-xl p-8 border border-border/50 hover:shadow-lg transition-all duration-300"
+                className="feature-card bg-card rounded-xl p-6 sm:p-8 border border-border/50 hover:shadow-lg transition-all duration-300"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                   <feature.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="font-heading font-semibold text-xl mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="font-heading font-semibold text-lg sm:text-xl mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -241,22 +313,22 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-4">
-              How It Works
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              {t("landing.howItWorks")}
             </h2>
-            <p className="text-muted-foreground text-lg">
-              Three simple steps to your perfect resume
+            <p className="text-muted-foreground text-base sm:text-lg">
+              {t("landing.howItWorksSubtitle")}
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { step: "01", title: "Enter Your Info", desc: "Fill in your details using our intuitive wizard interface" },
-              { step: "02", title: "AI Analysis", desc: "Get instant feedback and suggestions to improve your resume" },
-              { step: "03", title: "Download PDF", desc: "Export your polished resume ready for applications" },
+              { step: "01", title: t("landing.step1Title"), desc: t("landing.step1Desc") },
+              { step: "02", title: t("landing.step2Title"), desc: t("landing.step2Desc") },
+              { step: "03", title: t("landing.step3Title"), desc: t("landing.step3Desc") },
             ].map((item, index) => (
               <motion.div
                 key={index}
@@ -266,11 +338,11 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="font-heading text-6xl font-bold text-primary/20 mb-4">
+                <div className="font-heading text-5xl sm:text-6xl font-bold text-primary/20 mb-4">
                   {item.step}
                 </div>
-                <h3 className="font-heading font-semibold text-xl mb-2">{item.title}</h3>
-                <p className="text-muted-foreground">{item.desc}</p>
+                <h3 className="font-heading font-semibold text-lg sm:text-xl mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -278,30 +350,30 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-6 bg-primary text-primary-foreground">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold mb-6">
-            Ready to Land Your Dream Job?
+          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
+            {t("landing.ctaTitle")}
           </h2>
-          <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto">
-            Join thousands of professionals who have improved their careers with SmartResume.
+          <p className="text-primary-foreground/80 text-base sm:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto">
+            {t("landing.ctaSubtitle")}
           </p>
           <Button
             size="lg"
             variant="secondary"
-            onClick={handleLogin}
-            className="rounded-full px-10 text-base btn-press"
+            onClick={handleGoogleLogin}
+            className="rounded-full px-8 sm:px-10 text-base btn-press"
             data-testid="cta-btn"
           >
-            Start Building for Free
+            {t("landing.ctaButton")}
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-card border-t">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="py-8 sm:py-12 px-4 sm:px-6 bg-card border-t">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <FileText className="w-4 h-4 text-primary-foreground" />
