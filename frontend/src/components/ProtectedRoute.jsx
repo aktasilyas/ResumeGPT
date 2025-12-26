@@ -1,50 +1,29 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 import { Loader2 } from "lucide-react";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    location.state?.user ? true : null
-  );
-  const [user, setUser] = useState(location.state?.user || null);
+  const { user, isAuthenticated, isLoading, setUser } = useAuth();
 
   useEffect(() => {
-    // If user data passed from AuthCallback, skip auth check
-    if (location.state?.user) {
+    // If user data was passed from login/register, update context
+    if (location.state?.user && !user) {
       setUser(location.state.user);
-      setIsAuthenticated(true);
-      return;
     }
+  }, [location.state, user, setUser]);
 
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API}/auth/me`, {
-          credentials: "include",
-        });
+  useEffect(() => {
+    // Only redirect if not loading and not authenticated
+    if (!isLoading && !isAuthenticated && !location.state?.user) {
+      navigate("/", { replace: true });
+    }
+  }, [isLoading, isAuthenticated, navigate, location.state]);
 
-        if (!response.ok) {
-          throw new Error("Not authenticated");
-        }
-
-        const userData = await response.json();
-        setUser(userData);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        setIsAuthenticated(false);
-        navigate("/", { replace: true });
-      }
-    };
-
-    checkAuth();
-  }, [navigate, location.state]);
-
-  // Still checking auth
-  if (isAuthenticated === null) {
+  // Still loading auth state
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -55,11 +34,10 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // Not authenticated
-  if (!isAuthenticated) {
+  // Not authenticated and no passed user data
+  if (!isAuthenticated && !location.state?.user) {
     return null;
   }
 
-  // Authenticated - render children with user context
   return children;
 }

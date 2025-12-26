@@ -9,6 +9,7 @@ import PaymentSuccess from "@/pages/PaymentSuccess";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 import "@/App.css";
 
 function AppRouter() {
@@ -48,10 +49,12 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="cv-builder-theme">
       <LanguageProvider>
-        <BrowserRouter>
-          <AppRouter />
-          <Toaster position="top-right" richColors />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRouter />
+            <Toaster position="top-right" richColors />
+          </BrowserRouter>
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   );
