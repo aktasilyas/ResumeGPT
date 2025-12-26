@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/ThemeProvider";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import {
   Plus,
@@ -44,10 +45,9 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  const [user, setUser] = useState(location.state?.user || null);
+  const { user, logout: authLogout } = useAuth();
   const [cvs, setCvs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -57,22 +57,8 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetchUser();
     fetchCVs();
   }, []);
-
-  const fetchUser = async () => {
-    if (user) return;
-    try {
-      const response = await fetch(`${API}/auth/me`, { credentials: "include" });
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
-    }
-  };
 
   const fetchCVs = async () => {
     try {
@@ -131,15 +117,8 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch(`${API}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      navigate("/", { replace: true });
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await authLogout();
+    navigate("/", { replace: true });
   };
 
   const handleDownloadPDF = async (cvId, title) => {
