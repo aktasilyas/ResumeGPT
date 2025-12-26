@@ -6,12 +6,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
 from io import BytesIO
+import bcrypt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -130,6 +131,7 @@ class User(BaseModel):
     name: str
     picture: str = ""
     is_pro: bool = False
+    subscription_end: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AIAnalysisRequest(BaseModel):
@@ -144,7 +146,27 @@ class JobOptimizeRequest(BaseModel):
     cv_data: CVData
     job_description: str
 
+# Email/Password Auth Models
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+# Stripe Models
+class CreateCheckoutRequest(BaseModel):
+    origin_url: str
+
 # ===================== AUTH HELPERS =====================
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 
 async def get_current_user(request: Request) -> User:
     """Get current user from session token"""
@@ -175,11 +197,82 @@ async def get_current_user(request: Request) -> User:
     
     return User(**user)
 
-# ===================== AUTH ENDPOINTS =====================
+async def create_user_session(user_id: str, response: Response) -> str:
+    """Create a new session for user"""
+    session_token = f"st_{uuid.uuid4().hex}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    await db.user_sessions.delete_many({"user_id": user_id})
+    await db.user_sessions.insert_one({
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=7*24*60*60,
+        path="/"
+    )
+    
+    return session_token
+
+# ===================== EMAIL/PASSWORD AUTH =====================
+
+@api_router.post("/auth/register")
+async def register(request: RegisterRequest, response: Response):
+    """Register new user with email/password"""
+    existing = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    password_hash = hash_password(request.password)
+    
+    await db.users.insert_one({
+        "user_id": user_id,
+        "email": request.email,
+        "name": request.name,
+        "picture": "",
+        "password_hash": password_hash,
+        "is_pro": False,
+        "subscription_end": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    await create_user_session(user_id, response)
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+    return user
+
+@api_router.post("/auth/login")
+async def login(request: LoginRequest, response: Response):
+    """Login with email/password"""
+    user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if "password_hash" not in user:
+        raise HTTPException(status_code=401, detail="Please login with Google")
+    
+    if not verify_password(request.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    await create_user_session(user["user_id"], response)
+    
+    user_data = {k: v for k, v in user.items() if k != "password_hash"}
+    return user_data
+
+# ===================== GOOGLE OAUTH =====================
 
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
-    """Exchange session_id for session_token"""
+    """Exchange session_id for session_token (Google OAuth)"""
     # REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     body = await request.json()
     session_id = body.get("session_id")
@@ -212,6 +305,7 @@ async def create_session(request: Request, response: Response):
             "name": user_data["name"],
             "picture": user_data.get("picture", ""),
             "is_pro": False,
+            "subscription_end": None,
             "created_at": datetime.now(timezone.utc).isoformat()
         })
     
@@ -236,7 +330,7 @@ async def create_session(request: Request, response: Response):
         path="/"
     )
     
-    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
     return user
 
 @api_router.get("/auth/me")
@@ -253,6 +347,128 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("session_token", path="/", samesite="none", secure=True)
     return {"message": "Logged out"}
 
+# ===================== STRIPE SUBSCRIPTION =====================
+
+SUBSCRIPTION_PRICE = 4.99  # $4.99/month
+
+@api_router.post("/stripe/create-checkout")
+async def create_checkout_session(request: CreateCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
+    """Create Stripe checkout session for subscription"""
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+    
+    api_key = os.environ.get("STRIPE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Stripe not configured")
+    
+    host_url = str(http_request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    
+    success_url = f"{request.origin_url}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{request.origin_url}/dashboard"
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=SUBSCRIPTION_PRICE,
+        currency="usd",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "user_id": user.user_id,
+            "email": user.email,
+            "type": "subscription"
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    # Create payment transaction record
+    await db.payment_transactions.insert_one({
+        "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+        "session_id": session.session_id,
+        "user_id": user.user_id,
+        "email": user.email,
+        "amount": SUBSCRIPTION_PRICE,
+        "currency": "usd",
+        "payment_status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"url": session.url, "session_id": session.session_id}
+
+@api_router.get("/stripe/status/{session_id}")
+async def get_checkout_status(session_id: str, user: User = Depends(get_current_user)):
+    """Get checkout session status and update user subscription"""
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    
+    api_key = os.environ.get("STRIPE_API_KEY")
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url="")
+    
+    status = await stripe_checkout.get_checkout_status(session_id)
+    
+    # Update transaction record
+    transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if transaction and transaction.get("payment_status") != "paid" and status.payment_status == "paid":
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "payment_status": "paid",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Update user to pro
+        subscription_end = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        await db.users.update_one(
+            {"user_id": user.user_id},
+            {"$set": {
+                "is_pro": True,
+                "subscription_end": subscription_end
+            }}
+        )
+    
+    return {
+        "status": status.status,
+        "payment_status": status.payment_status,
+        "amount_total": status.amount_total,
+        "currency": status.currency
+    }
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    
+    api_key = os.environ.get("STRIPE_API_KEY")
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url="")
+    
+    body = await request.body()
+    signature = request.headers.get("Stripe-Signature")
+    
+    try:
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        if webhook_response.payment_status == "paid":
+            user_id = webhook_response.metadata.get("user_id")
+            if user_id:
+                subscription_end = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+                await db.users.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"is_pro": True, "subscription_end": subscription_end}}
+                )
+                
+                await db.payment_transactions.update_one(
+                    {"session_id": webhook_response.session_id},
+                    {"$set": {"payment_status": "paid", "updated_at": datetime.now(timezone.utc).isoformat()}}
+                )
+        
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"status": "error"}
+
 # ===================== CV ENDPOINTS =====================
 
 @api_router.get("/cvs", response_model=List[dict])
@@ -266,7 +482,7 @@ async def get_cvs(user: User = Depends(get_current_user)):
             cv["updated_at"] = datetime.fromisoformat(cv["updated_at"])
     return cvs
 
-@api_router.post("/cvs", response_model=dict)
+@api_router.post("/cvs", response_model=dict, status_code=201)
 async def create_cv(cv_create: CVCreate, user: User = Depends(get_current_user)):
     """Create a new CV"""
     cv = CV(user_id=user.user_id, title=cv_create.title)
@@ -372,7 +588,6 @@ Skills: {[s.name for s in cv_data.skills]}
     try:
         response = await get_ai_response(system_prompt, f"Analyze this CV:\n{cv_text}")
         import json
-        # Try to parse JSON from response
         response = response.strip()
         if response.startswith("```json"):
             response = response[7:]
@@ -384,7 +599,6 @@ Skills: {[s.name for s in cv_data.skills]}
         return result
     except Exception as e:
         logger.error(f"AI analysis error: {e}")
-        # Return mock response if AI fails
         return {
             "overall_score": 72,
             "breakdown": {"content": 75, "formatting": 70, "keywords": 65, "ats_compatibility": 78},
@@ -503,13 +717,12 @@ async def generate_pdf(cv_id: str, user: User = Depends(get_current_user)):
     if not cv:
         raise HTTPException(status_code=404, detail="CV not found")
     
-    from weasyprint import HTML, CSS
+    from weasyprint import HTML
     
     data = cv.get("data", {})
     settings = cv.get("settings", {})
     personal = data.get("personal_info", {})
     
-    # Generate HTML for the CV
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -611,7 +824,6 @@ async def generate_pdf(cv_id: str, user: User = Depends(get_current_user)):
     
     html_content += '</body></html>'
     
-    # Generate PDF
     pdf_bytes = HTML(string=html_content).write_pdf()
     
     return StreamingResponse(
