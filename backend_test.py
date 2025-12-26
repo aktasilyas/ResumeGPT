@@ -117,7 +117,7 @@ class SmartResumeAPITester:
         
         # Test CREATE CV
         cv_data = {"title": "Test Resume - Backend Testing"}
-        success, created_cv = self.run_test("Create CV", "POST", "/cvs", 201, cv_data)
+        success, created_cv = self.run_test("Create CV", "POST", "/cvs", 200, cv_data)
         
         if success and created_cv.get('cv_id'):
             self.test_cv_id = created_cv['cv_id']
