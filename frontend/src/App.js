@@ -4,8 +4,11 @@ import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import CVEditor from "@/pages/CVEditor";
 import AuthCallback from "@/pages/AuthCallback";
+import AuthPage from "@/pages/AuthPage";
+import PaymentSuccess from "@/pages/PaymentSuccess";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import "@/App.css";
 
 function AppRouter() {
@@ -20,6 +23,7 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/auth" element={<AuthPage />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -30,6 +34,11 @@ function AppRouter() {
           <CVEditor />
         </ProtectedRoute>
       } />
+      <Route path="/payment-success" element={
+        <ProtectedRoute>
+          <PaymentSuccess />
+        </ProtectedRoute>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -38,10 +47,12 @@ function AppRouter() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="cv-builder-theme">
-      <BrowserRouter>
-        <AppRouter />
-        <Toaster position="top-right" richColors />
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <AppRouter />
+          <Toaster position="top-right" richColors />
+        </BrowserRouter>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
