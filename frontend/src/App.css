@@ -29,127 +29,48 @@
     @apply bg-secondary/30 text-secondary-foreground border border-secondary/50;
 }
 
-/* CV Editor layout - Responsive */
+/* CV Editor layout - Fully Responsive */
 .editor-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
+    display: flex;
+    flex-direction: column;
     height: calc(100vh - 64px);
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
     .editor-container {
-        grid-template-columns: 280px 1fr;
+        display: grid;
+        grid-template-columns: 260px 1fr;
     }
 }
 
 @media (min-width: 1024px) {
     .editor-container {
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 300px 1fr;
     }
 }
 
 @media (min-width: 1280px) {
     .editor-container {
-        grid-template-columns: 360px 1fr 380px;
+        grid-template-columns: 340px 1fr 360px;
     }
 }
 
-/* Wizard step indicator */
-.wizard-step {
-    @apply relative flex items-center;
-}
-
-.wizard-step::before {
-    content: '';
-    @apply absolute left-4 top-10 w-0.5 h-full bg-border;
-}
-
-.wizard-step:last-child::before {
-    @apply hidden;
-}
-
-.wizard-step-active .wizard-dot {
-    @apply bg-primary text-primary-foreground ring-4 ring-primary/20;
-}
-
-.wizard-step-completed .wizard-dot {
-    @apply bg-primary text-primary-foreground;
+@media (min-width: 1536px) {
+    .editor-container {
+        grid-template-columns: 380px 1fr 420px;
+    }
 }
 
 /* CV Preview scaling - Responsive */
 .cv-preview-container {
-    @apply relative;
+    @apply relative mx-auto;
     transform-origin: top center;
-}
-
-.cv-preview-scale {
-    width: 210mm;
-    min-height: 297mm;
-    transform: scale(0.35);
-    transform-origin: top left;
-}
-
-@media (min-width: 640px) {
-    .cv-preview-scale {
-        transform: scale(0.4);
-    }
-}
-
-@media (min-width: 1024px) {
-    .cv-preview-scale {
-        transform: scale(0.45);
-    }
-}
-
-@media (min-width: 1280px) {
-    .cv-preview-scale {
-        transform: scale(0.5);
-    }
-}
-
-/* Drag and drop styles */
-.draggable-section {
-    @apply relative transition-all duration-200;
-}
-
-.draggable-section.is-dragging {
-    @apply opacity-50 scale-105;
-}
-
-.draggable-section.is-over {
-    @apply border-primary border-dashed;
-}
-
-/* Score circle animation */
-.score-circle {
-    @apply relative;
-}
-
-.score-circle svg {
-    transform: rotate(-90deg);
-}
-
-.score-circle-progress {
-    transition: stroke-dashoffset 1s ease-out;
 }
 
 /* Button press effect */
 .btn-press {
-    @apply transition-transform duration-100;
-}
-
-.btn-press:active {
-    @apply scale-[0.98];
-}
-
-/* Floating action button */
-.fab {
-    @apply fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50;
-    @apply w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg;
-    @apply flex items-center justify-center;
-    @apply bg-primary text-primary-foreground;
-    @apply hover:shadow-xl transition-shadow duration-300;
+    @apply transition-transform duration-100 active:scale-[0.98];
 }
 
 /* Template preview card */
@@ -159,19 +80,17 @@
 }
 
 .template-card:hover {
-    @apply border-primary/30 shadow-lg -translate-y-1;
+    @apply border-primary/30 shadow-lg;
+}
+
+@media (min-width: 640px) {
+    .template-card:hover {
+        transform: translateY(-4px);
+    }
 }
 
 .template-card.selected {
     @apply border-primary ring-4 ring-primary/20;
-}
-
-/* Inline AI button */
-.ai-improve-btn {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full;
-    @apply bg-secondary/50 text-secondary-foreground;
-    @apply hover:bg-secondary transition-colors duration-200;
-    @apply opacity-0 group-hover:opacity-100 transition-opacity;
 }
 
 /* Loading skeleton */
@@ -204,22 +123,10 @@
     @apply text-emerald-600;
 }
 
-/* Modal overlay */
+/* Modal overlay - Improved for mobile */
 .modal-overlay {
-    @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm;
-    @apply flex items-center justify-center p-4;
-}
-
-/* Custom select styling */
-.custom-select {
-    @apply appearance-none bg-white border border-input rounded-lg px-4 py-2.5;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
-    @apply transition-all duration-200;
-}
-
-/* Input focus ring */
-.input-focus {
-    @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
+    @apply fixed inset-0 z-50 bg-black/60 backdrop-blur-sm;
+    @apply flex items-end sm:items-center justify-center;
 }
 
 /* Dashboard grid - Responsive */
@@ -229,61 +136,146 @@
     gap: 1rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 480px) {
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        gap: 1.25rem;
     }
 }
 
 @media (min-width: 1024px) {
     .dashboard-grid {
         grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
     }
 }
 
-/* Empty state illustration */
+@media (min-width: 1280px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Empty state */
 .empty-state {
-    @apply flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4;
+    @apply flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20 text-center px-4;
 }
 
-.empty-state-icon {
-    @apply w-20 h-20 sm:w-24 sm:h-24 mb-4 sm:mb-6 text-muted-foreground/30;
-}
-
-/* Mobile-first typography */
+/* Mobile-optimized touch targets */
 @media (max-width: 639px) {
-    .font-heading {
-        letter-spacing: -0.01em;
-    }
-}
-
-/* Touch-friendly buttons on mobile */
-@media (max-width: 639px) {
-    .btn-touch {
+    button, a, [role="button"] {
         min-height: 44px;
-        min-width: 44px;
+    }
+    
+    input, select, textarea {
+        font-size: 16px; /* Prevents iOS zoom on focus */
     }
 }
 
-/* Hide scrollbar on mobile menu */
-.mobile-menu {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.mobile-menu::-webkit-scrollbar {
-    display: none;
-}
-
-/* Bottom sheet style modal on mobile */
-@media (max-width: 639px) {
-    .modal-bottom-sheet {
-        @apply fixed bottom-0 left-0 right-0 max-h-[90vh] rounded-t-2xl rounded-b-none;
+/* Safe area padding for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .safe-area-top {
+        padding-top: env(safe-area-inset-top);
     }
 }
 
-/* Card hover effects - disabled on touch devices */
+/* Glass effect */
+.glass {
+    @apply bg-white/80 backdrop-blur-xl border-white/20;
+}
+
+.dark .glass {
+    @apply bg-slate-900/80 border-slate-700/20;
+}
+
+/* Custom scrollbar - Hidden on mobile */
+@media (min-width: 768px) {
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        @apply bg-muted-foreground/20 rounded-full;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-muted-foreground/40;
+    }
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 767px) {
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* Stagger animation for lists */
+.stagger-children > * {
+    opacity: 0;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* Focus visible for accessibility */
+.focus-visible:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+}
+
+/* Hover effects - Disabled on touch */
 @media (hover: none) {
     .template-card:hover {
         transform: none;
@@ -295,51 +287,74 @@
     }
 }
 
-/* Safe area padding for mobile */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-    .safe-area-bottom {
-        padding-bottom: env(safe-area-inset-bottom);
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
     }
 }
 
-/* Responsive text utilities */
-.text-responsive-sm {
-    @apply text-xs sm:text-sm;
+/* Container max-widths */
+.container-narrow {
+    @apply max-w-2xl mx-auto px-4 sm:px-6;
 }
 
-.text-responsive-base {
-    @apply text-sm sm:text-base;
+.container-default {
+    @apply max-w-7xl mx-auto px-4 sm:px-6;
 }
 
-.text-responsive-lg {
-    @apply text-base sm:text-lg;
+.container-wide {
+    @apply max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8;
 }
 
-.text-responsive-xl {
+/* Card hover lift */
+.card-lift {
+    @apply transition-all duration-300;
+}
+
+.card-lift:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 639px) {
+    .card-lift:hover {
+        transform: none;
+    }
+}
+
+/* Input focus styles */
+.input-enhanced {
+    @apply transition-all duration-200;
+    @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
+}
+
+/* Button variants */
+.btn-gradient {
+    @apply bg-gradient-to-r from-primary to-emerald-600 text-white;
+    @apply hover:from-primary/90 hover:to-emerald-600/90;
+    @apply transition-all duration-200;
+}
+
+/* Section spacing */
+.section-spacing {
+    @apply py-12 sm:py-16 lg:py-20 xl:py-24;
+}
+
+/* Text responsive utilities */
+.text-hero {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+}
+
+.text-title {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+}
+
+.text-subtitle {
     @apply text-lg sm:text-xl;
-}
-
-.text-responsive-2xl {
-    @apply text-xl sm:text-2xl;
-}
-
-.text-responsive-3xl {
-    @apply text-2xl sm:text-3xl;
-}
-
-/* Responsive spacing utilities */
-.p-responsive {
-    @apply p-4 sm:p-6;
-}
-
-.py-responsive {
-    @apply py-4 sm:py-6;
-}
-
-.px-responsive {
-    @apply px-4 sm:px-6;
-}
-
-.gap-responsive {
-    @apply gap-4 sm:gap-6;
 }
