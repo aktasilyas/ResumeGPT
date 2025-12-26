@@ -236,6 +236,19 @@ const translations = {
     "payment.goToDashboard": "Go to Dashboard",
     "payment.processing": "Processing payment...",
     
+    // Share
+    "share.title": "Share Resume",
+    "share.subtitle": "Create a public link to share your resume",
+    "share.generate": "Generate Share Link",
+    "share.copy": "Copy Link",
+    "share.copied": "Link copied!",
+    "share.delete": "Delete Link",
+    "share.expires": "Expires",
+    "share.views": "Views",
+    "share.premiumRequired": "Premium subscription required to share",
+    "share.linkActive": "Share link is active",
+    "share.publicView": "Public Resume",
+    
     // Common
     "common.loading": "Loading...",
     "common.error": "An error occurred",
