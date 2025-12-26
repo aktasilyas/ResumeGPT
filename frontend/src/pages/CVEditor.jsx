@@ -455,6 +455,14 @@ export default function CVEditor() {
             toast.success("Template applied!");
           }}
           onClose={() => setShowTemplates(false)}
+          isPro={user?.is_pro}
+        />
+      )}
+      {showShare && (
+        <ShareModal
+          cvId={cvId}
+          isPro={user?.is_pro}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>
