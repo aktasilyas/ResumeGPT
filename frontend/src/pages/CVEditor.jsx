@@ -67,6 +67,8 @@ export default function CVEditor() {
   const { cvId } = useParams();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [cv, setCV] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -75,6 +77,7 @@ export default function CVEditor() {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showJobOptimize, setShowJobOptimize] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [aiLoading, setAiLoading] = useState({});
   
   const saveTimeoutRef = useRef(null);
