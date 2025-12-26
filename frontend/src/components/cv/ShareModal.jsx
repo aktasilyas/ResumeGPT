@@ -11,8 +11,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { toast } from "sonner";
 import { Share2, Copy, Trash2, Loader2, Crown, Eye, Calendar, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson, postJson, deleteJson } from "@/lib/api";
 
 export default function ShareModal({ cvId, isPro, onClose }) {
   const { t } = useLanguage();
@@ -26,15 +25,8 @@ export default function ShareModal({ cvId, isPro, onClose }) {
 
   const fetchShareLink = async () => {
     try {
-      const response = await fetch(`${API}/cvs/${cvId}/share`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.share_token) {
-          setShareLink(data);
-        }
-      }
+      const data = await getJson(`/cvs/${cvId}/share`);
+      if (data.share_token) setShareLink(data);
     } catch (error) {
       console.error("Failed to fetch share link:", error);
     } finally {
@@ -45,21 +37,16 @@ export default function ShareModal({ cvId, isPro, onClose }) {
   const generateShareLink = async () => {
     setGenerating(true);
     try {
-      const response = await fetch(`${API}/cvs/${cvId}/share`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setShareLink(data);
-        toast.success(t("share.linkActive"));
-      } else if (response.status === 403) {
-        toast.error(t("share.premiumRequired"));
-      }
+      const data = await postJson(`/cvs/${cvId}/share`);
+      setShareLink(data);
+      toast.success(t("share.linkActive"));
     } catch (error) {
-      console.error("Failed to generate share link:", error);
-      toast.error(t("common.error"));
+      if (error.status === 403) {
+        toast.error(t("share.premiumRequired"));
+      } else {
+        console.error("Failed to generate share link:", error);
+        toast.error(t("common.error"));
+      }
     } finally {
       setGenerating(false);
     }
@@ -67,15 +54,9 @@ export default function ShareModal({ cvId, isPro, onClose }) {
 
   const deleteShareLink = async () => {
     try {
-      const response = await fetch(`${API}/cvs/${cvId}/share`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        setShareLink(null);
-        toast.success(t("common.delete") + " ✓");
-      }
+      await deleteJson(`/cvs/${cvId}/share`);
+      setShareLink(null);
+      toast.success(t("common.delete") + " ✓");
     } catch (error) {
       console.error("Failed to delete share link:", error);
       toast.error(t("common.error"));

@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/App.css";
 
 function AppRouter() {
@@ -49,16 +50,18 @@ function AppRouter() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="cv-builder-theme">
-      <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppRouter />
-            <Toaster position="top-right" richColors />
-          </BrowserRouter>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="light" storageKey="cv-builder-theme">
+        <LanguageProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <AppRouter />
+              <Toaster position="top-right" richColors />
+            </BrowserRouter>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

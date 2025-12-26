@@ -50,7 +50,7 @@ import TemplateSelector from "@/components/cv/TemplateSelector";
 import ShareModal from "@/components/cv/ShareModal";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson, postJson, putJson, postBlob } from "@/lib/api";
 
 const WIZARD_STEPS = [
   { id: "personal", label: "Personal Info", icon: User },
@@ -92,18 +92,17 @@ export default function CVEditor() {
 
   const fetchCV = async () => {
     try {
-      const response = await fetch(`${API}/cvs/${cvId}`, { credentials: "include" });
-      if (response.ok) {
-        const data = await response.json();
-        setCV(data);
-        lastSavedRef.current = JSON.stringify(data);
-      } else {
-        toast.error("CV not found");
-        navigate("/dashboard");
-      }
+      const data = await getJson(`/cvs/${cvId}`);
+      setCV(data);
+      lastSavedRef.current = JSON.stringify(data);
     } catch (error) {
       console.error("Failed to fetch CV:", error);
-      toast.error("Failed to load CV");
+      if (error.status === 404) {
+        toast.error("CV not found");
+        navigate("/dashboard");
+      } else {
+        toast.error("Failed to load CV");
+      }
     } finally {
       setLoading(false);
     }
@@ -117,20 +116,12 @@ export default function CVEditor() {
 
     setSaving(true);
     try {
-      const response = await fetch(`${API}/cvs/${cvId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          title: cvData.title,
-          data: cvData.data,
-          settings: cvData.settings,
-        }),
+      await putJson(`/cvs/${cvId}`, {
+        title: cvData.title,
+        data: cvData.data,
+        settings: cvData.settings,
       });
-
-      if (response.ok) {
-        lastSavedRef.current = currentData;
-      }
+      lastSavedRef.current = currentData;
     } catch (error) {
       console.error("Failed to save CV:", error);
     } finally {
@@ -179,29 +170,20 @@ export default function CVEditor() {
     setAiLoading((prev) => ({ ...prev, [key]: true }));
 
     try {
-      const response = await fetch(`${API}/ai/improve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ section, content }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (itemId) {
-          const sectionKey = section === "experience" ? "experiences" : section;
-          const items = cv.data[sectionKey];
-          const index = items.findIndex((i) => i.id === itemId);
-          if (index !== -1) {
-            const updated = [...items];
-            updated[index] = { ...updated[index], description: data.improved };
-            handleChange(`data.${sectionKey}`, updated);
-          }
-        } else if (section === "summary") {
-          handleChange("data.summary", data.improved);
+      const data = await postJson(`/ai/improve`, { section, content });
+      if (itemId) {
+        const sectionKey = section === "experience" ? "experiences" : section;
+        const items = cv.data[sectionKey];
+        const index = items.findIndex((i) => i.id === itemId);
+        if (index !== -1) {
+          const updated = [...items];
+          updated[index] = { ...updated[index], description: data.improved };
+          handleChange(`data.${sectionKey}`, updated);
         }
-        toast.success("AI improved your content!");
+      } else if (section === "summary") {
+        handleChange("data.summary", data.improved);
       }
+      toast.success("AI improved your content!");
     } catch (error) {
       console.error("AI improve failed:", error);
       toast.error("Failed to improve with AI");
@@ -212,23 +194,16 @@ export default function CVEditor() {
 
   const handleDownloadPDF = async () => {
     try {
-      const response = await fetch(`${API}/generate-pdf/${cvId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${cv.title}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success("PDF downloaded!");
-      }
+      const blob = await postBlob(`/generate-pdf/${cvId}`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${cv.title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("PDF downloaded!");
     } catch (error) {
       console.error("Failed to download PDF:", error);
       toast.error("Failed to download PDF");

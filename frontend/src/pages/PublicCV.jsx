@@ -6,8 +6,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import CVPreview from "@/components/cv/CVPreview";
 import { FileText, Loader2, AlertCircle, Eye, Moon, Sun, Globe, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson } from "@/lib/api";
 
 export default function PublicCV() {
   const { shareToken } = useParams();
@@ -23,18 +22,12 @@ export default function PublicCV() {
 
   const fetchPublicCV = async () => {
     try {
-      const response = await fetch(`${API}/public/cv/${shareToken}`);
-      if (response.ok) {
-        const result = await response.json();
-        setData(result);
-      } else if (response.status === 404) {
-        setError("not_found");
-      } else {
-        setError("error");
-      }
+      const result = await getJson(`/public/cv/${shareToken}`);
+      setData(result);
     } catch (err) {
       console.error("Failed to fetch public CV:", err);
-      setError("error");
+      if (err.status === 404) setError("not_found");
+      else setError("error");
     } finally {
       setLoading(false);
     }

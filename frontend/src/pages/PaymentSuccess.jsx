@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson } from "@/lib/api";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -29,16 +28,10 @@ export default function PaymentSuccess() {
       }
 
       try {
-        const response = await fetch(`${API}/stripe/status/${sessionId}`, {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.payment_status === "paid") {
-            setStatus("success");
-            return;
-          }
+        const data = await getJson(`/stripe/status/${sessionId}`);
+        if (data.payment_status === "paid") {
+          setStatus("success");
+          return;
         }
 
         // Continue polling

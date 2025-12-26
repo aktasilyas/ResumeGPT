@@ -26,8 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson } from "@/lib/api";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -40,10 +39,8 @@ export default function Landing() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`${API}/auth/me`, { credentials: "include" });
-        if (response.ok) {
-          navigate("/dashboard", { replace: true });
-        }
+        await getJson(`/auth/me`);
+        navigate("/dashboard", { replace: true });
       } catch (error) {
         // Not authenticated, stay on landing
       }

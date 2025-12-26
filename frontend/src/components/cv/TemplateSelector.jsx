@@ -12,8 +12,7 @@ import {
 import { useLanguage } from "@/components/LanguageProvider";
 import { X, Check, Crown, Lock } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { postJson } from "@/lib/api";
 
 const TEMPLATES = [
   {
@@ -66,17 +65,8 @@ export default function TemplateSelector({ currentTemplate, onSelect, onClose, i
 
   const handleUpgrade = async () => {
     try {
-      const response = await fetch(`${API}/stripe/create-checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ origin_url: window.location.origin }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href = data.url;
-      }
+      const data = await postJson(`/stripe/create-checkout`, { origin_url: window.location.origin });
+      window.location.href = data.url;
     } catch (error) {
       console.error("Failed to create checkout:", error);
     }

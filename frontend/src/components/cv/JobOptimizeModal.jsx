@@ -4,8 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Target, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { postJson } from "@/lib/api";
 
 export default function JobOptimizeModal({ cv, onClose, onApply }) {
   const [jobDescription, setJobDescription] = useState("");
@@ -17,20 +16,11 @@ export default function JobOptimizeModal({ cv, onClose, onApply }) {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API}/ai/optimize-for-job`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          cv_data: cv.data,
-          job_description: jobDescription,
-        }),
+      const data = await postJson(`/ai/optimize-for-job`, {
+        cv_data: cv.data,
+        job_description: jobDescription,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setResult(data);
-      }
+      setResult(data);
     } catch (error) {
       console.error("Optimization failed:", error);
     } finally {

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson, postJson } from "@/lib/api";
 
 const AuthContext = createContext({
   user: null,
@@ -21,16 +20,8 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch(`${API}/auth/me`, {
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
+      const userData = await getJson(`/auth/me`);
+      setUser(userData);
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
@@ -45,10 +36,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await postJson(`/auth/logout`);
     } catch (error) {
       console.error("Logout error:", error);
     }

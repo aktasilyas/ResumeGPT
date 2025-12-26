@@ -4,8 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { X, Sparkles, Loader2, CheckCircle2, AlertCircle, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { postJson } from "@/lib/api";
 
 export default function AIAnalysisPanel({ cv, onClose }) {
   const [analysis, setAnalysis] = useState(null);
@@ -17,19 +16,8 @@ export default function AIAnalysisPanel({ cv, onClose }) {
     setError(null);
 
     try {
-      const response = await fetch(`${API}/ai/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ cv_data: cv.data }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAnalysis(data);
-      } else {
-        throw new Error("Analysis failed");
-      }
+      const data = await postJson(`/ai/analyze`, { cv_data: cv.data });
+      setAnalysis(data);
     } catch (err) {
       console.error("AI analysis error:", err);
       setError("Failed to analyze CV. Please try again.");

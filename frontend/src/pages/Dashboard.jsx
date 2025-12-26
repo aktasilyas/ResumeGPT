@@ -40,8 +40,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { getJson, postJson, deleteJson, postBlob } from "@/lib/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -62,11 +61,8 @@ export default function Dashboard() {
 
   const fetchCVs = async () => {
     try {
-      const response = await fetch(`${API}/cvs`, { credentials: "include" });
-      if (response.ok) {
-        const data = await response.json();
-        setCvs(data);
-      }
+      const data = await getJson(`/cvs`);
+      setCvs(data);
     } catch (error) {
       console.error("Failed to fetch CVs:", error);
       toast.error(t("common.error"));
@@ -78,19 +74,10 @@ export default function Dashboard() {
   const handleCreateCV = async () => {
     setCreating(true);
     try {
-      const response = await fetch(`${API}/cvs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: newTitle }),
-      });
-
-      if (response.ok) {
-        const cv = await response.json();
-        toast.success(language === "tr" ? "Özgeçmiş oluşturuldu!" : "Resume created!");
-        setShowNewModal(false);
-        navigate(`/editor/${cv.cv_id}`);
-      }
+      const cv = await postJson(`/cvs`, { title: newTitle });
+      toast.success(language === "tr" ? "Özgeçmiş oluşturuldu!" : "Resume created!");
+      setShowNewModal(false);
+      navigate(`/editor/${cv.cv_id}`);
     } catch (error) {
       console.error("Failed to create CV:", error);
       toast.error(t("common.error"));
@@ -101,15 +88,9 @@ export default function Dashboard() {
 
   const handleDeleteCV = async (cvId) => {
     try {
-      const response = await fetch(`${API}/cvs/${cvId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        setCvs(cvs.filter((cv) => cv.cv_id !== cvId));
-        toast.success(language === "tr" ? "Özgeçmiş silindi" : "Resume deleted");
-      }
+      await deleteJson(`/cvs/${cvId}`);
+      setCvs(cvs.filter((cv) => cv.cv_id !== cvId));
+      toast.success(language === "tr" ? "Özgeçmiş silindi" : "Resume deleted");
     } catch (error) {
       console.error("Failed to delete CV:", error);
       toast.error(t("common.error"));
@@ -123,23 +104,16 @@ export default function Dashboard() {
 
   const handleDownloadPDF = async (cvId, title) => {
     try {
-      const response = await fetch(`${API}/generate-pdf/${cvId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${title}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success("PDF " + (language === "tr" ? "indirildi!" : "downloaded!"));
-      }
+      const blob = await postBlob(`/generate-pdf/${cvId}`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("PDF " + (language === "tr" ? "indirildi!" : "downloaded!"));
     } catch (error) {
       console.error("Failed to download PDF:", error);
       toast.error(t("common.error"));
@@ -148,17 +122,8 @@ export default function Dashboard() {
 
   const handleUpgrade = async () => {
     try {
-      const response = await fetch(`${API}/stripe/create-checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ origin_url: window.location.origin }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href = data.url;
-      }
+      const data = await postJson(`/stripe/create-checkout`, { origin_url: window.location.origin });
+      window.location.href = data.url;
     } catch (error) {
       console.error("Failed to create checkout:", error);
       toast.error(t("common.error"));

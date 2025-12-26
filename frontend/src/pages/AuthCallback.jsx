@@ -2,8 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { Loader2 } from "lucide-react";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { postJson } from "@/lib/api";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -29,19 +28,8 @@ export default function AuthCallback() {
         }
 
         // Exchange session_id for session_token
-        const response = await fetch(`${API}/auth/session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ session_id: sessionId }),
-        });
+        const user = await postJson(`/auth/session`, { session_id: sessionId });
 
-        if (!response.ok) {
-          throw new Error("Failed to create session");
-        }
-
-        const user = await response.json();
-        
         // Update auth context
         await login(user);
 

@@ -9,8 +9,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { Loader2, FileText, ArrowLeft, Mail, Lock, User, Sparkles, Moon, Sun, Globe } from "lucide-react";
 import { motion } from "framer-motion";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { postJson } from "@/lib/api";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -32,24 +31,13 @@ export default function AuthPage() {
       : formData;
     
     try {
-      const response = await fetch(`${API}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-      
-      if (response.ok) {
-        const user = await response.json();
-        await login(user);
-        toast.success(isLogin ? t("auth.login") + " ✓" : t("auth.signup") + " ✓");
-        navigate("/dashboard", { replace: true });
-      } else {
-        const error = await response.json();
-        toast.error(error.detail || t("common.error"));
-      }
+      const user = await postJson(endpoint, body);
+      await login(user);
+      toast.success(isLogin ? t("auth.login") + " ✓" : t("auth.signup") + " ✓");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
-      toast.error(t("common.error"));
+      // If API returned useful message, show it; otherwise show generic error
+      toast.error(error.message || t("common.error"));
     } finally {
       setLoading(false);
     }
